@@ -38,14 +38,14 @@ $38–$3e	Varied notes	Mixed	Change in timbre for the drone
 $3f	Varied notes	Mixed	Highpass filter, no blinking on the screen
 ```
 
-When bar $40 is reached, the program turns off the display and jumps through the system reset vector. In this way, the final few moments of the demo are actually managed by the system boot sequence: First, the SID is silenced. Then, there is a delay while the system is setting up data structures. Finally, the display goes back on, and the C64 home screen is rendered. A mind is born.
+When bar `$40` is reached, the program turns off the display and jumps through the system reset vector. In this way, the final few moments of the demo are actually managed by the system boot sequence: First, the SID is silenced. Then, there is a delay while the system is setting up data structures. Finally, the display goes back on, and the C64 home screen is rendered. A mind is born.
 
 ### Implementation
 Now let's see how to do all of the above in 256 bytes. Here is a hex dump of the executable file:
 
 ![Scaled-down hex dump for reference](https://github.com/cesarmiquel/c64-dev/raw/master/imgs/a-mind-is-born-image-01.png "Scaled-down hex dump for reference")
 
-Let's start at the beginning. The first two bytes (yellow background) are the load address, $0801, in little-endian byte order. This is the default load address for a BASIC program, and was in fact mandated by compo rules.
+Let's start at the beginning. The first two bytes (yellow background) are the load address, `$0801`, in little-endian byte order. This is the default load address for a BASIC program, and was in fact mandated by compo rules.
 
 Next up (cyan background) is the tiny BASIC program that bootstraps the demo. It looks like this when listed:
 
@@ -53,35 +53,36 @@ Next up (cyan background) is the tiny BASIC program that bootstraps the demo. It
 54271 SYS2225
 ```
 
-This line of BASIC is encoded in the file as follows: First there's a pointer ($080b) to the next line, or in this case to the end-of-program marker, which is a null pointer. Next up is the BASIC line number, which is 54271 for a good reason; more about this later. The byte $9e represents the SYS token, and is followed by a target address (2225) spelled out in PETSCII characters. A null-byte terminates the line.
+This line of BASIC is encoded in the file as follows: First there's a pointer (`$080b`) to the next line, or in this case to the end-of-program marker, which is a null pointer. Next up is the BASIC line number, which is `54271` for a good reason; more about this later. The byte `$9e` represents the `SYS` token, and is followed by a target address (`2225`) spelled out in PETSCII characters. A null-byte terminates the line.
 
-The SYS statement invokes the initialisation routine (file offset $b3, blue background), which will be described in more detail later. Its main job is to copy the entire program into the zero-page and jump to it.
+The SYS statement invokes the initialisation routine (file offset `$b3`, blue background), which will be described in more detail later. Its main job is to copy the entire program into the zero-page and jump to it.
 
-Following the BASIC program, with a slight overlap, is a shadow buffer for the SID registers (dotted black outline). Some of these values are modified while the demo is running, and all 25 bytes are copied into the SID register area, $d400–$d418, at the end of the interrupt handler. In addition, the five bytes starting at file offset $12 (brown background) represent the current palette. They are copied into the VIC background colour registers, $d020–$d024, also at the end of the interrupt handler.
+Following the BASIC program, with a slight overlap, is a shadow buffer for the SID registers (dotted black outline). Some of these values are modified while the demo is running, and all 25 bytes are copied into the SID register area, `$d400–$d418`, at the end of the interrupt handler. In addition, the five bytes starting at file offset `$12` (brown background) represent the current palette. They are copied into the VIC background colour registers, `$d020–$d024`, also at the end of the interrupt handler.
 
-The bytes at file offsets $14 and $21 (white and red digits, respectively) together form a 16-bit counter. This is the global clock of the demo. It is incremented by two at each interrupt. The low byte (white digits) represents the position within the current bar of music, while the upper byte (red digits) represents the current bar number, in the range $00–$40. Both bytes are located in the SID register shadow. In this way, the low byte automatically modulates the pulse-width of the melody vocie, while also animating one of the palette entries. The high byte controls the cutoff frequency of the SID filter, resulting in a slow filtersweep throughout the song.
+The bytes at file offsets `$14` and `$21` (white and red digits, respectively) together form a 16-bit counter. This is the global clock of the demo. It is incremented by two at each interrupt. The low byte (white digits) represents the position within the current bar of music, while the upper byte (red digits) represents the current bar number, in the range $00–$40. Both bytes are located in the SID register shadow. In this way, the low byte automatically modulates the pulse-width of the melody vocie, while also animating one of the palette entries. The high byte controls the cutoff frequency of the SID filter, resulting in a slow filtersweep throughout the song.
 
 The melody is generated by a linear-feedback shift register (LFSR). Thus, in one sense, the melody is randomly generated. But I spent a considerable amount of time tweaking the random process until I found something that was musically satisfactory. Tweakable parameters include the initial seed value, the so called "taps" of the LFSR, and most importantly the frequency table, which we will return to later. The LFSR is located at file offset $15 (blue digits). Note that the LFSR is initially zero, and this is why the melody is silent during the first eight bars of the song. The LFSR is also part of the palette, and additionally controls the upper bits of the pulse-width register for the melody voice, providing timbral variety.
 
 ### The script (light green)
-Starting at file offset $22 (light green background) is the script. This is essentially a poke table with eight entries, encoded as byte pairs. The first byte of each pair is the target address in zero-page, and the second byte is what to write. The writes are carried out during music playback, synchronised with the kick drums, and each entry remains in effect during eight bars of music.
+Starting at file offset `$22` (light green background) is the script. This is essentially a poke table with eight entries, encoded as byte pairs. The first byte of each pair is the target address in zero-page, and the second byte is what to write. The writes are carried out during music playback, synchronised with the kick drums, and each entry remains in effect during eight bars of music.
 
 Here is a rundown of what the entries in the script table do:
 
 Bars|Poke|Effect
 -------|------|--------
-$00–$07|ff 1f|The first entry in the script, which overlaps the SID register shadow, is a dummy write to address $ff, just past the end of the program. This also means that SID register $d417 is $ff, meaning all voices (and the external input) are routed through the filter and the resonance is at maximum.
-$08–$0f|14 41|This initialises the melody LFSR. The seed value, $41, is written into the LFSR (at address $14) repeatedly during these eight bars, in time with the kick drums. This is what makes the melody stutter.
-$10–$17|d5 24|This entry overwrites an opcode in the main routine, enabling more colours on the screen. The main routine will be described in more detail later. What's more, since the script no longer keeps resetting the LFSR on every drum beat, the melody is allowed to proceed.
-$18–$1f|15 25|This selects waveform $25 for the melody voice, i.e. ring-modulated sawtooth. The ring-modulation bit doesn't affect the sawtooth waveform, so this sounds just like the more commonly used waveform $21. But recall that this byte also controls one of the colours in the palette: Colour 5 (green) adds some variety to the visuals at this point.
-$20–$27|15 53|The waveform is changed to $53, i.e. mixed waveform $51 with hard-sync. The hard-sync modifies the timbre of the sound, while also causing some notes to sound alike and other notes to disappear entirely, creating variety in the melody. Cyan (colour 3) also replaces green in the palette.
-$28–$2f|15 61|Here we select mixed waveform $61 for the melody voice. Hard-sync is now disabled, so we're back to the normal melody and colour 1 (white).
-$30–$37|d5 29|Here we write another opcode into the main routine, making the visual effect brighter. We'll come back to the visuals in the section about the main routine.
-$38–$3f|1b 0f|This changes the high bits of the pulse-width of the drone voice from $e to $f, resulting in a noticeably brighter timbre.
-As you can see, the script covers a large part of the register updates demanded by the song structure, but there is still a need for specialised branching code to handle the rest. That goes into the interrupt routine, which is the large block of code starting at offset $32 in the file (purple background). We'll dive into the assembler code of the interrupt handler in due time.
+`$00–$07`|`ff 1f`|The first entry in the script, which overlaps the SID register shadow, is a dummy write to address $ff, just past the end of the program. This also means that SID register `$d417` is `$ff`, meaning all voices (and the external input) are routed through the filter and the resonance is at maximum.
+`$08–$0f`|`14 41`|This initialises the melody LFSR. The seed value, `$41`, is written into the LFSR (at address `$14`) repeatedly during these eight bars, in time with the kick drums. This is what makes the melody stutter.
+`$10–$17`|`d5 24`|This entry overwrites an opcode in the main routine, enabling more colours on the screen. The main routine will be described in more detail later. What's more, since the script no longer keeps resetting the LFSR on every drum beat, the melody is allowed to proceed.
+`$18–$1f`|`15 25`|This selects waveform `$25` for the melody voice, i.e. ring-modulated sawtooth. The ring-modulation bit doesn't affect the sawtooth waveform, so this sounds just like the more commonly used waveform `$21`. But recall that this byte also controls one of the colours in the palette: Colour 5 (green) adds some variety to the visuals at this point.
+`$20–$27`|`15 53`|The waveform is changed to `$53`, i.e. mixed waveform `$51` with hard-sync. The hard-sync modifies the timbre of the sound, while also causing some notes to sound alike and other notes to disappear entirely, creating variety in the melody. Cyan (colour 3) also replaces green in the palette.
+`$28–$2f`|`15 61`|Here we select mixed waveform $61 for the melody voice. Hard-sync is now disabled, so we're back to the normal melody and colour 1 (white).
+`$30–$37`|`d5 29`|Here we write another opcode into the main routine, making the visual effect brighter. We'll come back to the visuals in the section about the main routine.
+`$38–$3f`|`1b 0f`|This changes the high bits of the pulse-width of the drone voice from `$e` to `$f`, resulting in a noticeably brighter timbre.
+
+As you can see, the script covers a large part of the register updates demanded by the song structure, but there is still a need for specialised branching code to handle the rest. That goes into the interrupt routine, which is the large block of code starting at offset `$32` in the file (purple background). We'll dive into the assembler code of the interrupt handler in due time.
 
 ### Initialisation (blue)
-We will now have a closer look at the init code (file offset $b3, blue background), originally loaded at decimal address 2226. Actually, the SYS statement jumps to address 2225, but that's more or less for giggles: The interrupt routine happens to end with a jump into a ROM routine at address $ea7e, and this makes $ea the last byte of the interrupt handler. But $ea is the opcode for nop, so we might as well jump there.
+We will now have a closer look at the init code (file offset `$b3`, blue background), originally loaded at decimal address `2226`. Actually, the `SYS` statement jumps to address `2225`, but that's more or less for giggles: The interrupt routine happens to end with a jump into a ROM routine at address `$ea7e`, and this makes $ea the last byte of the interrupt handler. But `$ea` is the opcode for `nop`, so we might as well jump there.
 
 Let's have a look at the code:
 
@@ -105,7 +106,7 @@ initloop
 
 Interrupts are temporarily disabled. The X register, which is known to be zero at this point, is written to two locations, selecting black as the current background colour. Different versions of the Kernal look for this in different places, hence the need to write twice. Next, a ROM routine for clearing the screen is called. We don't really care about clearing the screen buffer, but the point of calling the ROM routine is that it also fills the Colour RAM with our selected colour.
 
-The entire program is then copied into the zero-page. The interrupt handler ends up at address $0031. The default Kernal interrupt handler, invoked via a vector at $0314, is at $ea31. Thus we only need to clear the high byte of the vector in order to divert it to our own handler. After doing that, we jump to the main routine (orange background), now in place at address $00cc.
+The entire program is then copied into the zero-page. The interrupt handler ends up at address `$0031`. The default Kernal interrupt handler, invoked via a vector at `$0314`, is at $ea31. Thus we only need to clear the high byte of the vector in order to divert it to our own handler. After doing that, we jump to the main routine (orange background), now in place at address `$00cc`.
 
 ### The main routine (orange)
 
@@ -120,7 +121,7 @@ First, we select the ECM video mode (Extended Character Mode, where the two most
         cli
 ```
 
-Interrupts are reenabled and we enter the main loop. One more thing needs to be initialised: We need to tell the VIC chip to look for the video matrix at address $0c00 and the font at $0000. This is done by writing $30 into the bank register ($d018). But this will be done from within the loop, as doing so allows us to use the value $30 for two things. An important property of this particular bank configuration is that the system stack page becomes part of the font definition.
+Interrupts are reenabled and we enter the main loop. One more thing needs to be initialised: We need to tell the VIC chip to look for the video matrix at address `$0c00` and the font at `$0000`. This is done by writing `$30` into the bank register (`$d018`). But this will be done from within the loop, as doing so allows us to use the value `$30` for two things. An important property of this particular bank configuration is that the system stack page becomes part of the font definition.
 
 The main loop is responsible for filling the stack with font data that varies in intensity with the volume of the drone voice, and also for filling the video matrix with ECM references that form interesting patterns on the screen.
 
@@ -134,7 +135,7 @@ mod_op2
         pha
 ```
 
-It is relatively straightforward to generate the font bits: We grab the low byte of a CIA timer to obtain a randomish value. Then, at the label mod_op1, we optionally force some of the bits to one (this only happens after the opcode gets modified via the script). Then we bitwise-or with the output of the Voice 3 envelope generator. Recall that Voice 3 plays the drone, which is off-beat. Therefore, its envelope is zero when we want the visuals to be bright, and $ff when we want the visuals to be dark. But this is exactly what we get, due to having filled the Colour RAM with zeros. The resulting font bits are then pushed onto the cyclic stack.
+It is relatively straightforward to generate the font bits: We grab the low byte of a CIA timer to obtain a randomish value. Then, at the label `mod_op1`, we optionally force some of the bits to one (this only happens after the opcode gets modified via the script). Then we bitwise-or with the output of the Voice 3 envelope generator. Recall that Voice 3 plays the drone, which is off-beat. Therefore, its envelope is zero when we want the visuals to be bright, and `$ff` when we want the visuals to be dark. But this is exactly what we get, due to having filled the Colour RAM with zeros. The resulting font bits are then pushed onto the cyclic stack.
 
 Of course, every now and then as an interrupt is serviced, a few bytes in the stack area get overwritten, leading to visual glitches. But these glitches fit in with the other graphics, and actually provide a bit of variety, so that's fine.
 
@@ -159,16 +160,17 @@ The idea here is to maintain a pointer into the video matrix, and to read and co
 
 Just before writing the computed value into the video matrix, we subject it to a bitwise-or with the opcode at mod_op1. This opcode (modified twice from the script) therefore serves dual purposes, as detailed below:
 
-Opcode|Instruction|Effect on font	Effect on video matrix
-a0|ldy #$c3|None|Force background colour 2 or 3 (white/black, later white/red).
-24|bit $c3|None|Any colour allowed.
-29|and #$c3|Force half of the pixels to be zero (i.e. not black), leading to brighter visuals.	Any colour allowed.
+Opcode|Instruction|Effect on font|Effect on video matrix
+-------|------|--------|--------
+`a0`|`ldy #$c3`|None|Force background colour 2 or 3 (white/black, later white/red).
+`24`|`bit $c3`|None|Any colour allowed.
+`29`|`and #$c3`|Force half of the pixels to be zero (i.e. not black), leading to brighter visuals.	Any colour allowed.
 
 In addition to the above, all three opcodes have bit 5 set, which ensures that only characters defined on the stack page get used.
 
 Attentive readers will have noticed that only the low byte of the video matrix pointer gets incremented. The high byte is instead modified from within the interrupt handler, which we will get to presently. Naturally, this leads to a race condition, possibly resulting in visual glitches. But again, glitches fit in.
 
-The video matrix pointer is located at $cb, corresponding to file offset $cc (solid black outline). Initially, it is $a900, resulting in some dummy writes to high memory.
+The video matrix pointer is located at `$cb`, corresponding to file offset `$cc` (solid black outline). Initially, it is `$a900`, resulting in some dummy writes to high memory.
 
 The interrupt handler
 Now we turn to the bulk of the code, which is the interrupt handler. First we increment the global clock:
@@ -218,7 +220,7 @@ Moving on, we still have the current bar number in both X and A. We use the valu
 ### Generating the beat
 Next up, we are going to compute the pitch of Voice 1, responsible for the kick drum and bass. This is rather complex. It mostly depends on where we are within the current beat, which is encoded in the lower six bits of the global clock.
 
-If we are within the first 25% of a beat, we are going to generate a drum sound, i.e. a rapidly descending pitch. Ducking is also carried out during this part of the beat, even if the drums are currently muted (as they are in bar $2f). The following code takes care of both ducking and muting, as well as enforcing a static bass note during the first part of the song:
+If we are within the first 25% of a beat, we are going to generate a drum sound, i.e. a rapidly descending pitch. Ducking is also carried out during this part of the beat, even if the drums are currently muted (as they are in bar `$2f`). The following code takes care of both ducking and muting, as well as enforcing a static bass note during the first part of the song:
 
 ```
         lda     clock
@@ -253,9 +255,9 @@ From X, we compute an index into the table of bass notes at file offset $f4 (gre
         tax
 ```
 
-To get the desired bass notes, we have to update both the LSB and MSB of the pitch register. But our pitch values do not exceed $3ff, so we can get away with a byte table if we put the MSB in the two least significant bits of the table entries. Having read a byte from the table, we first use it as the low-byte. Then we mask out the two least significant bits, and use the resulting value as the high-byte. This approach will detune the bass a little bit, but that's fine.
+To get the desired bass notes, we have to update both the LSB and MSB of the pitch register. But our pitch values do not exceed `$3ff`, so we can get away with a byte table if we put the MSB in the two least significant bits of the table entries. Having read a byte from the table, we first use it as the low-byte. Then we mask out the two least significant bits, and use the resulting value as the high-byte. This approach will detune the bass a little bit, but that's fine.
 
-We perform the masking by means of a bitwise-and instruction (solid magenta outline) with the operand $00ab. The byte at absolute address $00ab is 3 (also shown with a solid magenta outline). In this way, we sneakily skip over the lax instruction (ab 00) that is executed when we branch to bassoff.
+We perform the masking by means of a bitwise-and instruction (solid magenta outline) with the operand `$00ab`. The byte at absolute address `$00ab` is 3 (also shown with a solid magenta outline). In this way, we sneakily skip over the lax instruction (`ab 00`) that is executed when we branch to bassoff.
 
 ```
         lda     basstbl,x
@@ -295,10 +297,10 @@ bassdone
         sta     sid+0*7+1
 ```
 
-Notice how the MSB of the video matrix pointer runs through the values $08–$0f as the drum pitch descends. Most of the memory in the C64 is uninitialised when our program starts. However, the program was originally loaded at address $0801, and this data effectively becomes the seed of the cellular automaton, leading to predictable visuals on every run. On the other hand, we want a certain amount of randomness to accumulate into the computation as it progresses towards higher memory addresses. This is why $0c00 is the ideal location for the video matrix.
+Notice how the MSB of the video matrix pointer runs through the values `$08–$0f` as the drum pitch descends. Most of the memory in the C64 is uninitialised when our program starts. However, the program was originally loaded at address `$0801`, and this data effectively becomes the seed of the cellular automaton, leading to predictable visuals on every run. On the other hand, we want a certain amount of randomness to accumulate into the computation as it progresses towards higher memory addresses. This is why `$0c00` is the ideal location for the video matrix.
 
 Generating the melody
-Now it is time to compute the pitch of Voice 2, i.e. the melody. If we are at the beginning of a new 16th note, we clock the LFSR and use the three least significant bits as an index into the melody note table at file offset $f8 (pink background). The first entry is zero, producing a rest.
+Now it is time to compute the pitch of Voice 2, i.e. the melody. If we are at the beginning of a new 16th note, we clock the LFSR and use the three least significant bits as an index into the melody note table at file offset `$f8` (pink background). The first entry is zero, producing a rest.
 
 The LFSR implementation is kind of backwards. Instead of shifting first, and exclusive-oring with a constant if a one was shifted out, we begin by loading the constant into the accumulator. Then we shift the LFSR and perform the exclusive-or, but we only write it back in case a one was shifted out. The point of doing it this way is that we can use the illegal sre instruction, and save one byte.
 
@@ -322,7 +324,7 @@ nomel
 
 Next, we need to copy the SID register shadow into the actual SID registers, and the palette values into the corresponding VIC registers.
 
-We begin with the VIC registers. While we only need to update registers $d020–$d024, we will actually go all the way down to $d01c. This allows us to reuse the two bytes at file offset $10 (beige background; also the ADSR values for Voice 1) as a base address.
+We begin with the VIC registers. While we only need to update registers `$d020–$d024`, we will actually go all the way down to `$d01c`. This allows us to reuse the two bytes at file offset `$10` (beige background; also the ADSR values for Voice 1) as a base address.
 
 ```
         ldy     #8
@@ -333,7 +335,7 @@ vicloop
         bpl     vicloop
 ```
 
-A further side-effect of stopping at $d01c is that we end up with $19 in the accumulator (obtained from file offset $0e; this byte also controls the pulse-width of Voice 1). This is handy, because we can use it as the starting offset when looping over the SID registers:
+A further side-effect of stopping at `$d01c` is that we end up with `$19` in the accumulator (obtained from file offset $0e; this byte also controls the pulse-width of Voice 1). This is handy, because we can use it as the starting offset when looping over the SID registers:
 
 ```
         tay
@@ -344,7 +346,7 @@ loop
         bne     loop
 ```
 
-Remember the trick we did near the bassoff label, where the operand of the and instruction would sometimes be interpreted as a lax instruction? The sta in the above code snippet is located at $aa, so because of the aforementioned trick its operand byte must be 3. Therefore, we have to ensure that the constant word $d3ff is stored at address $03, i.e. file offset $04 (solid blue outline). And that is why the BASIC line number is 54271 ($d3ff).
+Remember the trick we did near the bassoff label, where the operand of the and instruction would sometimes be interpreted as a lax instruction? The sta in the above code snippet is located at `$aa`, so because of the aforementioned trick its operand byte must be 3. Therefore, we have to ensure that the constant word `$d3ff` is stored at address `$03`, i.e. file offset `$04` (solid blue outline). And that is why the BASIC line number is `54271 ($d3ff)`.
 
 Finally, we leave the interrupt routine by jumping into ROM:
 
