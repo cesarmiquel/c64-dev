@@ -43,8 +43,7 @@ When bar $40 is reached, the program turns off the display and jumps through the
 ### Implementation
 Now let's see how to do all of the above in 256 bytes. Here is a hex dump of the executable file:
 
-
-![Scaled-down hex dump for reference](imgs/a-mind-is-born-image-01.png)
+![Scaled-down hex dump for reference](https://github.com/cesarmiquel/c64-dev/raw/master/imgs/a-mind-is-born-image-01.png "Scaled-down hex dump for reference")
 
 Let's start at the beginning. The first two bytes (yellow background) are the load address, $0801, in little-endian byte order. This is the default load address for a BASIC program, and was in fact mandated by compo rules.
 
