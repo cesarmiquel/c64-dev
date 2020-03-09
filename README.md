@@ -9,7 +9,7 @@
 
 ### Graphics
 - [SpritePad](http://www.subchristsoftware.com/spritepad/index.htm) - Sprite editor for Windows. Can be run in Linux / Mac with Wine
-- [CharPad](http://www.subchristsoftware.com/charpadfree/index.htm) - CharPad (Free Edition) is a free cross-development tool for designing character mode graphics and game maps for the Commodore 64 computer. Page in itch.io](https://subchristsoftware.itch.io/charpad-free-edition)
+- [CharPad](http://www.subchristsoftware.com/charpadfree/index.htm) - CharPad (Free Edition) is a free cross-development tool for designing character mode graphics and game maps for the Commodore 64 computer. [Page in itch.io](https://subchristsoftware.itch.io/charpad-free-edition)
 - [SpriteMate](https://github.com/Esshahn/spritemate) - spritemate is a browser based sprite editor for the Commodore 64
 
 - [PetMate](https://nurpax.github.io/petmate/) - Cool PETSCII editor
@@ -22,12 +22,11 @@
 
 
 
-
 ## People
 
 - [Linus Åkesson / lft](https://linusakesson.net/index.php) - Author of "A Mind is born" 256 byte demo and lots of other interesting things
 - [Matt Simmonds / 4mat](http://4matprojects.blogspot.com/) - Audio Director at nDreams VR / electronic musician 4mat.  Previously at Jagex, Climax.  Worked on a bunch of old games. [Twitter @4mat_scenemusic](https://twitter.com/4mat_scenemusic)
 
-## Publihers
+## Publishers
 
 - [Double Sided Games](https://doublesidedgames.com/) - We publish new games for retro computers. [Twitter @DSidedGames])https://twitter.com/DSidedGames)
