@@ -32,6 +32,10 @@
 ## Interesting posts
 
 - [The Making of Musik Run/Stop and We Are All Connected](http://hugi.scene.org/online/hugi38/hugi%2038%20-%20demoscene%20reports%20magic%20the%20making%20of%20musik%20run%20stop.htm) - Post about two awesome demos that appeared in Datastorm 2014 written by Magic of Nah-Kolor
+- [An Introduction to Programming C-64 Demos](http://www.antimon.org/code/Linus/) - Tutorial written by Puterman <puterman@civitas64.de> aka Linus Åkerlund
+
+
+
 
 ## Demos -with- source code
 
