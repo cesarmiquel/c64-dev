@@ -35,7 +35,9 @@
 - [An Introduction to Programming C-64 Demos](http://www.antimon.org/code/Linus/) - Tutorial written by Puterman <puterman@civitas64.de> aka Linus Åkerlund
 
 
+## Sites and links
 
+- [Codebase 64](https://codebase64.org/doku.php) - This wiki is the number one source of articles on Commodore 64 programming. You will find source code, tutorials, manuals, notes on clever tricks and hardware quirks and more! **Note:** is from 2007 so we should download / copy the content here for backup purposes.
 
 ## Demos -with- source code
 
