@@ -29,6 +29,9 @@
 - [Matt Simmonds / 4mat](http://4matprojects.blogspot.com/) - Audio Director at nDreams VR / electronic musician 4mat.  Previously at Jagex, Climax.  Worked on a bunch of old games. [Twitter @4mat_scenemusic](https://twitter.com/4mat_scenemusic)
 - [Pex "Mahoney" Tufvessom](https://livet.se/mahoney/) - Swedish demo scene guy who created a technique to play 48Khz samples on the C64. Example demo ["Musik Run/Stop"](https://csdb.dk/release/?id=129090)
 
+## Interesting posts
+
+- [The Making of Musik Run/Stop and We Are All Connected](http://hugi.scene.org/online/hugi38/hugi%2038%20-%20demoscene%20reports%20magic%20the%20making%20of%20musik%20run%20stop.htm) - Post about two awesome demos that appeared in Datastorm 2014 written by Magic of Nah-Kolor
 ## Publishers
 
 - [Double Sided Games](https://doublesidedgames.com/) - We publish new games for retro computers. [Twitter @DSidedGames])https://twitter.com/DSidedGames)
