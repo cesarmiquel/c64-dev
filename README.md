@@ -37,7 +37,7 @@
 
 ## Sites and links
 
-- [Codebase 64](https://codebase64.org/doku.php) - This wiki is the number one source of articles on Commodore 64 programming. You will find source code, tutorials, manuals, notes on clever tricks and hardware quirks and more! **Note:** is from 2007 so we should download / copy the content here for backup purposes.
+- [Codebase 64](https://codebase64.org/doku.php) - This wiki is the number one source of articles on Commodore 64 programming. You will find source code, tutorials, manuals, notes on clever tricks and hardware quirks and more! <br>**Note:** is from 2007 so we should download / copy the content here for backup purposes. You can download the HTML via [this link](https://codebase64.org/doku.php?id=download_the_wiki)
 
 ## Demos -with- source code
 
