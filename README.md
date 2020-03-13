@@ -43,6 +43,10 @@
 
 - "Storebror" - [demo and source](https://livet.se/mahoney/c64-files/Storebror_by_Pex_Mahoney_Tufvesson.zip) / [YouTube video](https://www.youtube.com/watch?v=LAE9B1k5YMQ)
 
+## Demos I like
+
+- [Lunatico](https://csdb.dk/release/?id=151273) - [YouTube video](https://www.youtube.com/watch?v=OYlPcHwdhvM)
+
 ## Publishers
 
 - [Double Sided Games](https://doublesidedgames.com/) - We publish new games for retro computers. [Twitter @DSidedGames](https://twitter.com/DSidedGames)
