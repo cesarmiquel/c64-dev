@@ -4,6 +4,7 @@
 
 - [c64 303](http://4matprojects.blogspot.com/2020/03/c64-303.html) - a 303 byte demo with source code and a writeup
 - [A Mind is Born by Linus Akesson](https://linusakesson.net/scene/a-mind-is-born/index.php) - An incredible 256 byte demo by Linux Akesson ([Source here](https://gist.github.com/cesarmiquel/64d3000515900d24a43b4c813ce9cd99))
+- [A 48Khz digital music player for the Commodore 64](http://brokenbytes.blogspot.com/2018/03/a-48khz-digital-music-player-for.html) - How to play a 1:30 min song stored on a cartridge on a C64
 
 ## Tools
 
