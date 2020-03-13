@@ -45,4 +45,4 @@
 
 ## Publishers
 
-- [Double Sided Games](https://doublesidedgames.com/) - We publish new games for retro computers. [Twitter @DSidedGames])https://twitter.com/DSidedGames)
+- [Double Sided Games](https://doublesidedgames.com/) - We publish new games for retro computers. [Twitter @DSidedGames](https://twitter.com/DSidedGames)
