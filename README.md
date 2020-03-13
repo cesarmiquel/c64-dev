@@ -27,6 +27,7 @@
 
 - [Linus Åkesson / lft](https://linusakesson.net/index.php) - Author of "A Mind is born" 256 byte demo and lots of other interesting things
 - [Matt Simmonds / 4mat](http://4matprojects.blogspot.com/) - Audio Director at nDreams VR / electronic musician 4mat.  Previously at Jagex, Climax.  Worked on a bunch of old games. [Twitter @4mat_scenemusic](https://twitter.com/4mat_scenemusic)
+- [Pex "Mahoney" Tufvessom](https://livet.se/mahoney/) - Swedish demo scene guy who created a technique to play 48Khz samples on the C64. Example demo ["Musik Run/Stop"](https://csdb.dk/release/?id=129090)
 
 ## Publishers
 
